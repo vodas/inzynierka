@@ -28,7 +28,17 @@ class AisController extends Controller
      */
     public function zatokaAction(Request $request)
     {
-        
+            $decoder = new AisDecoder();
+            $txtFile = file_get_contents('/var/www/html/application/var/ais/aisdata.txt');
+            $rows = explode("\n", $txtFile);
+            $messages = array();
+        foreach ($rows as $row) {
+            if(substr($row, 0, 1)=='!') {
+                $message = $decoder->decode($row);
+                array_push($messages, array('datetime' =>'', 'message' => ''));
+            }
+        }
+   
         return $this->render('default/zatoka.html.twig',array());
     }
 

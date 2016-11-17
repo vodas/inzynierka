@@ -51,16 +51,22 @@ class AisDecoder {
 		$sequentialMessageId = $aisArray[3];
 		$radioChannel = $aisArray[4];
 		$payload = str_split($aisArray[5]);
-		$numberOfFillBits = substr($aisArray[6],0,1);
+		if(array_key_exists(6, $aisArray)) {
+			$numberOfFillBits = substr($aisArray[6],0,1);
+		} else {
+			return null;
+		}
 		$checksum = substr($aisArray[6],2,4);
 		
 		$crc = 0;
 		$offset = 0;
 		$mess = substr($aisMessage, 0, -3);
+		$mess = substr($mess, 1);
 		for($i = 0; $i<strlen($mess); $i++) {
 			$char = substr($mess,$i,1);
 			$crc ^= $this->ordutf8($char,$offset);
 		}
+
 
 		if (strtoupper(dechex($crc)) == $checksum) {
 
@@ -85,134 +91,147 @@ class AisDecoder {
 		}
 		$message = array();
 		$message['type'] =  bindec(substr($binaryPayload,0,6));
-		$message['repeatIndicator'] = bindec(substr($binaryPayload,6,2));
-		$message['mmsi'] = bindec(substr($binaryPayload,8,30));
-		$message['navigationalStatus'] = bindec(substr($binaryPayload,38,4));
-		if ($message['navigationalStatus'] == 0) {
-		    $message['navigationalStatus'] = 'under way using engine';
-		} elseif($message['navigationalStatus'] == 1) {
-		    $message['navigationalStatus'] = 'at anchor';
-		} elseif($message['navigationalStatus'] == 2) {
-		    $message['navigationalStatus'] ='not under command';
-		} elseif($message['navigationalStatus'] == 3) {
-		    $message['navigationalStatus'] ='restricted maneuverability';
-		} elseif($message['navigationalStatus'] == 4) {
-		    $message['navigationalStatus'] ='constrained by her draught';
-		} elseif($message['navigationalStatus'] == 5) {
-		    $message['navigationalStatus'] ='moored';
-		} elseif($message['navigationalStatus'] == 6) {
-		    $message['navigationalStatus'] ='aground';
-		} elseif($message['navigationalStatus'] == 7) {
-		    $message['navigationalStatus'] = 'engaged in fishing';
-		} elseif($message['navigationalStatus'] == 8) {
-		    $message['navigationalStatus'] = ' under way sailing';
-		} elseif($message['navigationalStatus'] == 9) {
-		    $message['navigationalStatus'] = 'reserved for future amendment of navigational status for ships carrying DG, HS, or MP, or IMO hazard or pollutant category C, high speed craft (HSC)';
-		} elseif($message['navigationalStatus'] == 10) {
-		    $message['navigationalStatus'] = 'reserved for future amendment of navigational status for ships carrying dangerous goods (DG), harmful substances (HS) or marine pollutants (MP), or IMO hazard or pollutant category A, wing in ground (WIG)';
-		} elseif($message['navigationalStatus'] == 11) {
-		    $message['navigationalStatus'] ='power-driven vessel towing astern (regional use)';
-		} elseif($message['navigationalStatus'] == 12) {
-		    $message['navigationalStatus'] ='power-driven vessel pushing ahead or towing alongside (regional use)';
-		} elseif($message['navigationalStatus'] == 13) {
-		    $message['navigationalStatus'] ='reserved for future use';
-		} elseif($message['navigationalStatus'] == 14) {
-		    $message['navigationalStatus'] ='AIS-SART (active), MOB-AIS, EPIRB-AIS';
-		} elseif($message['navigationalStatus'] == 15) {
-		    $message['navigationalStatus'] ='undefined = default (also used by AIS-SART, MOB-AIS and EPIRB-AIS under test)';
-		}
-		if (substr($binaryPayload,42,1) == 0) {
-		    $message['rateOfTurn'] = bindec(substr($binaryPayload,43,7));
-		} elseif(substr($binaryPayload,42,1) == 1){
-		    $value='';
-		    for ($i=1;$i < 8;$i++) {
-			if (substr($binaryPayload,42+$i,1) == 1) {
-			    $value = $value.'0';
-			} else {
-			    $value = $value.'1';
+		if(in_array($message['type'], array(1,2,3))) {
+
+			$message['repeatIndicator'] = bindec(substr($binaryPayload,6,2));
+			$message['mmsi'] = bindec(substr($binaryPayload,8,30));
+			$message['navigationalStatus'] = bindec(substr($binaryPayload,38,4));
+			if ($message['navigationalStatus'] == 0) {
+			    $message['navigationalStatus'] = 'under way using engine';
+			} elseif($message['navigationalStatus'] == 1) {
+			    $message['navigationalStatus'] = 'at anchor';
+			} elseif($message['navigationalStatus'] == 2) {
+			    $message['navigationalStatus'] ='not under command';
+			} elseif($message['navigationalStatus'] == 3) {
+			    $message['navigationalStatus'] ='restricted maneuverability';
+			} elseif($message['navigationalStatus'] == 4) {
+			    $message['navigationalStatus'] ='constrained by her draught';
+			} elseif($message['navigationalStatus'] == 5) {
+			    $message['navigationalStatus'] ='moored';
+			} elseif($message['navigationalStatus'] == 6) {
+			    $message['navigationalStatus'] ='aground';
+			} elseif($message['navigationalStatus'] == 7) {
+			    $message['navigationalStatus'] = 'engaged in fishing';
+			} elseif($message['navigationalStatus'] == 8) {
+			    $message['navigationalStatus'] = ' under way sailing';
+			} elseif($message['navigationalStatus'] == 9) {
+			    $message['navigationalStatus'] = 'reserved for future amendment of navigational status for ships carrying DG, HS, or MP, or IMO hazard or pollutant category C, high speed craft (HSC)';
+			} elseif($message['navigationalStatus'] == 10) {
+			    $message['navigationalStatus'] = 'reserved for future amendment of navigational status for ships carrying dangerous goods (DG), harmful substances (HS) or marine pollutants (MP), or IMO hazard or pollutant category A, wing in ground (WIG)';
+			} elseif($message['navigationalStatus'] == 11) {
+			    $message['navigationalStatus'] ='power-driven vessel towing astern (regional use)';
+			} elseif($message['navigationalStatus'] == 12) {
+			    $message['navigationalStatus'] ='power-driven vessel pushing ahead or towing alongside (regional use)';
+			} elseif($message['navigationalStatus'] == 13) {
+			    $message['navigationalStatus'] ='reserved for future use';
+			} elseif($message['navigationalStatus'] == 14) {
+			    $message['navigationalStatus'] ='AIS-SART (active), MOB-AIS, EPIRB-AIS';
+			} elseif($message['navigationalStatus'] == 15) {
+			    $message['navigationalStatus'] ='undefined = default (also used by AIS-SART, MOB-AIS and EPIRB-AIS under test)';
 			}
-		    }
-		    $message['rateOfTurn'] = -(bindec($value)+1);
-		}
-		if($message['rateOfTurn'] == 0) {
-		    $message['rateOfTurn'] = 'not turning';
-		} elseif ($message['rateOfTurn'] > 0 && $message['rateOfTurn'] < 127) {
-		    $message['rateOfTurn'] = ($message['rateOfTurn']/4.733)*($message['rateOfTurn']/4.733)."  turning right at up to 708 deg per min or higher";
-		} elseif ($message['rateOfTurn'] < 0 && $message['rateOfTurn'] > -127) {
-		    $message['rateOfTurn'] = ($message['rateOfTurn']/4.733)*($message['rateOfTurn']/4.733)."  turning left at up to 708 deg per min or higher";
-		} elseif ($message['rateOfTurn'] == 127) {
-		    $message['rateOfTurn'] = 'turning right at more than 5 deg per 30 s (No TI available)';
-		} elseif($message['rateOfTurn'] == -127) {
-		    $message['rateOfTurn'] = 'turning left at more than 5 deg per 30 s (No TI available)';
-		} elseif ($message['rateOfTurn'] == -128) {
-		    $message['rateOfTurn'] = 'indicates no turn information available (default)';
-		}
-		$message['speedOverGround'] = bindec(substr($binaryPayload,50,10))/10;
-		$message['positionAccuracy'] = substr($binaryPayload,60,1);
-		if ($message['positionAccuracy'] == 1) {
-		    $message['positionAccuracy'] = 'DGPS-quality fix with an accuracy of < 10ms';
-		} else {
-		    $message['positionAccuracy'] = 'an unaugmented GNSS fix with accuracy > 10m';
-		}
-		if (substr($binaryPayload,61,1) == 0) {
-		    $message['longitude'] = bindec(substr($binaryPayload, 62, 27))/600000;
-		} else {
-		    $value = '';
-		    for ($i = 0 ; $i < 27; $i++) {
-			if (substr($binaryPayload,62+$i,1) == 1) {
-			    $value = $value.'0';
-			} else {
-			    $value = $value.'1';
+
+
+
+			if (substr($binaryPayload,42,1) == 0) {
+			    $message['rateOfTurn'] = bindec(substr($binaryPayload,43,7));
+			} elseif(substr($binaryPayload,42,1) == 1){
+			    $value='';
+			    for ($i=1;$i < 8;$i++) {
+				if (substr($binaryPayload,42+$i,1) == 1) {
+				    $value = $value.'0';
+				} else {
+				    $value = $value.'1';
+				}
+			    }
+			    $message['rateOfTurn'] = -(bindec($value)+1);
 			}
-		    }
-		    $message['longitude'] = -(bindec($value)+1)/600000;
-		    if ($message['longitude'] == 181) {
-			$message['longitude'] = 'not available';
-		    }
-		}
-		if (substr($binaryPayload,89,1) == 0) {
-		    $message['latitude'] = bindec(substr($binaryPayload, 90, 26))/600000;
-		} else {
-		    $value = '';
-		    for ($i = 0 ; $i < 26; $i++) {
-			if (substr($binaryPayload,91+$i,1) == 1) {
-			    $value = $value.'0';
-			} else {
-			    $value = $value.'1';
+			if($message['rateOfTurn'] == 0) {
+			    $message['rateOfTurn'] = 'not turning';
+			} elseif ($message['rateOfTurn'] > 0 && $message['rateOfTurn'] < 127) {
+			    $message['rateOfTurn'] = ($message['rateOfTurn']/4.733)*($message['rateOfTurn']/4.733)."  turning right at up to 708 deg per min or higher";
+			} elseif ($message['rateOfTurn'] < 0 && $message['rateOfTurn'] > -127) {
+			    $message['rateOfTurn'] = ($message['rateOfTurn']/4.733)*($message['rateOfTurn']/4.733)."  turning left at up to 708 deg per min or higher";
+			} elseif ($message['rateOfTurn'] == 127) {
+			    $message['rateOfTurn'] = 'turning right at more than 5 deg per 30 s (No TI available)';
+			} elseif($message['rateOfTurn'] == -127) {
+			    $message['rateOfTurn'] = 'turning left at more than 5 deg per 30 s (No TI available)';
+			} elseif ($message['rateOfTurn'] == -128) {
+			    $message['rateOfTurn'] = 'indicates no turn information available (default)';
 			}
-		    }
-		    $message['latitude'] = -(bindec($value)+1)/600000;
+			$message['speedOverGround'] = bindec(substr($binaryPayload,50,10))/10;
+			$message['positionAccuracy'] = substr($binaryPayload,60,1);
+			if ($message['positionAccuracy'] == 1) {
+			    $message['positionAccuracy'] = 'DGPS-quality fix with an accuracy of < 10ms';
+			} else {
+			    $message['positionAccuracy'] = 'an unaugmented GNSS fix with accuracy > 10m';
+			}
+			if (substr($binaryPayload,61,1) == 0) {
+			    $message['longitude'] = bindec(substr($binaryPayload, 62, 27))/600000;
+			} else {
+			    $value = '';
+			    for ($i = 0 ; $i < 27; $i++) {
+				if (substr($binaryPayload,62+$i,1) == 1) {
+				    $value = $value.'0';
+				} else {
+				    $value = $value.'1';
+				}
+			    }
+			    $message['longitude'] = -(bindec($value)+1)/600000;
+			    if ($message['longitude'] == 181) {
+				$message['longitude'] = 'not available';
+			    }
+			}
+			if (substr($binaryPayload,89,1) == 0) {
+			    $message['latitude'] = bindec(substr($binaryPayload, 90, 26))/600000;
+			} else {
+			    $value = '';
+			    for ($i = 0 ; $i < 26; $i++) {
+				if (substr($binaryPayload,91+$i,1) == 1) {
+				    $value = $value.'0';
+				} else {
+				    $value = $value.'1';
+				}
+			    }
+			    $message['latitude'] = -(bindec($value)+1)/600000;
+			}
+			if($message['latitude'] == 91) {
+			    $message['latitude'] = 'not available';
+			}
+			$message['courseOverGround'] = bindec(substr($binaryPayload,116,12))/10;
+			if ($message['courseOverGround'] == 360) {
+			    $message['courseOverGround'] = 'not available';
+			}
+			$message['trueHeading'] = bindec(substr($binaryPayload,128,9));
+			if ($message['trueHeading'] == 511) {
+			    $message['trueHeading'] = 'not available';
+			}
+			$message['timeStamp'] = bindec(substr($binaryPayload,137,6));
+			if ($message['timeStamp'] == 60) {
+			    $message['timeStamp'] = 'not available';
+			} else if ($message['timeStamp'] == 61) {
+			    $message['timeStamp'] = 'positioning system is in manual input mode';
+			} else if ($message['timeStamp'] == 62) {
+			    $message['timeStamp'] = 'electronic position fixing system operates in estimated (dead reckoning) mode';
+			} else if ($message['timeStamp'] == 63) {
+			    $message['timeStamp'] = 'positioning system is inoperative';
+			}
+			$message['maneuverIndicator'] = bindec(substr($binaryPayload,143,2));
+			if ($message['maneuverIndicator'] == 0) {
+			    $message['maneuverIndicator'] = 'not available';
+			} elseif ($message['maneuverIndicator'] == 1) {
+			    $message['maneuverIndicator'] = 'No special maneuver';
+			} elseif ($message['maneuverIndicator'] == 2) {
+			    $message['maneuverIndicator'] = 'Special maneuver';
+			}
+			$message['raimFlag'] = substr($binaryPayload,148,1);
+		} elseif ($message['type']==4) {
+			$message['year'] = bindec(substr($binaryPayload, 38, 14));
+			$message['month'] = bindec(substr($binaryPayload, 52, 4));
+			$message['day'] = bindec(substr($binaryPayload, 56, 5));
+			$message['hour'] = bindec(substr($binaryPayload, 61, 5));
+			$message['minute'] = bindec(substr($binaryPayload, 66, 6)); 
+			$message['second'] = bindec(substr($binaryPayload, 72, 6));
 		}
-		if($message['latitude'] == 91) {
-		    $message['latitude'] = 'not available';
-		}
-		$message['courseOverGround'] = bindec(substr($binaryPayload,116,12))/10;
-		if ($message['courseOverGround'] == 360) {
-		    $message['courseOverGround'] = 'not available';
-		}
-		$message['trueHeading'] = bindec(substr($binaryPayload,128,9));
-		if ($message['trueHeading'] == 511) {
-		    $message['trueHeading'] = 'not available';
-		}
-		$message['timeStamp'] = bindec(substr($binaryPayload,137,6));
-		if ($message['timeStamp'] == 60) {
-		    $message['timeStamp'] = 'not available';
-		} else if ($message['timeStamp'] == 61) {
-		    $message['timeStamp'] = 'positioning system is in manual input mode';
-		} else if ($message['timeStamp'] == 62) {
-		    $message['timeStamp'] = 'electronic position fixing system operates in estimated (dead reckoning) mode';
-		} else if ($message['timeStamp'] == 63) {
-		    $message['timeStamp'] = 'positioning system is inoperative';
-		}
-		$message['maneuverIndicator'] = bindec(substr($binaryPayload,143,2));
-		if ($message['maneuverIndicator'] == 0) {
-		    $message['maneuverIndicator'] = 'not available';
-		} elseif ($message['maneuverIndicator'] == 1) {
-		    $message['maneuverIndicator'] = 'No special maneuver';
-		} elseif ($message['maneuverIndicator'] == 2) {
-		    $message['maneuverIndicator'] = 'Special maneuver';
-		}
-		$message['raimFlag'] = substr($binaryPayload,148,1);
 		return $message;
 		} else {
 		return "bad checksum";
