@@ -54,7 +54,7 @@ class AisDecoder {
 		if(array_key_exists(6, $aisArray)) {
 			$numberOfFillBits = substr($aisArray[6],0,1);
 		} else {
-			return null;
+			return "error";
 		}
 		$checksum = substr($aisArray[6],2,4);
 		
@@ -66,9 +66,13 @@ class AisDecoder {
 			$char = substr($mess,$i,1);
 			$crc ^= $this->ordutf8($char,$offset);
 		}
+		
+		$check = strtoupper(dechex($crc));
 
-
-		if (strtoupper(dechex($crc)) == $checksum) {
+		if (strlen($check)==1) {
+			$check = '0'.$check;
+		}
+		if ($check == $checksum) {
 
 	
 

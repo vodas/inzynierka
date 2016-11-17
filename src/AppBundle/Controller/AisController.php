@@ -32,10 +32,23 @@ class AisController extends Controller
             $txtFile = file_get_contents('/var/www/html/application/var/ais/aisdata.txt');
             $rows = explode("\n", $txtFile);
             $messages = array();
+            $currentTime = null;
         foreach ($rows as $row) {
             if(substr($row, 0, 1)=='!') {
+                $row = str_replace("\r", '', $row);
                 $message = $decoder->decode($row);
-                array_push($messages, array('datetime' =>'', 'message' => ''));
+                //dump($row);
+                if ($message != 'error' || $message != 'bad checksum') {
+
+                    if ($message['type']==4) {
+                        $currentTime = $message['year'];
+                        //echo $currentTime;
+                    }
+
+                    elseif (in_array($message['type'], array(1,2,3))) {
+                        array_push($messages, array('datetime' =>'', 'message' => $message));
+                    }
+                }
             }
         }
    
