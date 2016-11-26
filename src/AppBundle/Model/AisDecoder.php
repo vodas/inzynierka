@@ -94,7 +94,11 @@ class AisDecoder {
 		    }
 		}
 		$message = array();
+		$message['seqid'] = $sequentialMessageId;
+		$message['part'] = $fragmentNumber;
+		$message['binaryPayload'] = $binaryPayload;
 		$message['type'] =  bindec(substr($binaryPayload,0,6));
+
 		if(in_array($message['type'], array(1,2,3))) {
 
 			$message['repeatIndicator'] = bindec(substr($binaryPayload,6,2));
@@ -240,6 +244,73 @@ class AisDecoder {
 		} else {
 		return "bad checksum";
 		}
+
+	}
+
+	public function decodeType_5($part_1, $part_2){
+
+		$asc_6bit = array(0 => '@', 1 => 'A', 2 => 'B', 3 => 'C',
+					4 => 'D', 5 => 'E', 6 => 'F', 7 => 'G',
+					8 => 'H', 9 => 'I', 10 => 'J', 11 => 'K',
+					12 => 'L', 13 => 'M', 14 => 'N', 15 => 'O',
+					16 => 'P', 17 => 'Q', 18 => 'R', 19 => 'S',
+					20 => 'T', 21 => 'U', 22 => 'V', 23 => 'W',
+					24 => 'X', 25 => 'Y', 26 => 'Z', 27 => '[',
+					28 => "'\'", 29 => ']', 30 => "\^", 31 => "\_",
+					32 => ' ', 33 => '!', 34 => '"', 35 => '\#',
+					36 => '$', 37 => '%', 38 => '&', 39 => "\'",
+					40 => '(', 41 => ')', 42 => "\*", 43 => "\+",
+					44 => ",", 45 => "-", 46 => ".", 47 => "/",
+					48 => '0', 49 => '1', 50 => '2', 51 => '3',
+					52 => '4', 53 => '5', 54 => '6', 55 => '7',
+					56 => '8', 57 => '9', 58 => ':', 59 => ';',
+					60 => '<', 61 => '=', 62 => '>', 63 => '?'   
+			);
+
+		$payload = $part_1.$part_2;
+		$message = array();
+		$message['repeatIndicator'] = bindec(substr($payload,6,2));
+		$message['mmsi'] = bindec(substr($payload,8,30));
+		$message['ais_version'] = bindec(substr($payload, 38, 2));
+		$message['imo'] = bindec(substr($payload, 40, 30));
+		$message['callsign'] = substr($payload, 70, 42);
+		$callsign = '';
+		$shipname = '';
+		$destination = '';
+		$i = 0;
+		while ($i < 41) {
+			$callsign = $callsign.$asc_6bit[bindec(substr($message['callsign'],$i,6))];
+			$i+=6;
+		}
+		$message['callsign'] = $callsign;
+
+		$message['shipname'] = substr($payload, 112, 120);
+		$i = 0;
+		while ($i < 119) {
+			$shipname = $shipname.$asc_6bit[bindec(substr($message['shipname'],$i,6))];
+			$i+=6;
+		}
+		$message['shipname'] = $shipname;
+
+
+		$message['shiptype'] = bindec(substr($payload, 232, 8));
+		$message['to_bow'] = bindec(substr($payload, 240, 9));
+		$message['to_stern'] = bindec(substr($payload, 249, 9));
+		$message['to_port'] = bindec(substr($payload, 258, 6));
+		$message['to_starboard'] = bindec(substr($payload, 264, 6));
+		$message['epfd'] = bindec(substr($payload, 270, 4));
+		$message['month'] = bindec(substr($payload, 274, 4));
+		$message['day'] = bindec(substr($payload, 278, 5));
+		$message['hour'] = bindec(substr($payload, 283, 5));
+		$message['minute'] = bindec(substr($payload, 288, 6));
+		$message['draught'] = bindec(substr($payload, 294, 8));
+		$message['destination'] = substr($payload, 302, 120);
+		$i = 0;
+		while ($i < 119) {
+			$destination = $destination.$asc_6bit[bindec(substr($message['destination'],$i,6))];
+			$i+=6;
+		}
+		$message['destination'] = $destination;
 
 	}
 }

@@ -41,13 +41,27 @@ class AisController extends Controller
             $rows = explode("\n", $txtFile);
             $messages = array();
             $currentTime = null;
+            $shipDataBuffer = array();
+            $ships = array();
         foreach ($rows as &$row) {
             if(substr($row, 0, 1)=='!') {
                 $row = str_replace("\r", '', $row);
                 $message = $decoder->decode($row);
-                //dump($row);
                 
                 if ($message != "error" && $message != "bad checksum") {
+
+
+                     if ($message['type'] == 5) {
+                         $shipDataBuffer[$message['seqid']]['payload'] = $message['binaryPayload'];
+                     }
+                     if ($message['part'] == 2) {
+                        if (array_key_exists($message['seqid'], $shipDataBuffer)) {
+
+                            
+                            $decoder->decodeType_5($shipDataBuffer[$message['seqid']]['payload'],$message['binaryPayload']);
+                            unset($shipDataBuffer[$message['seqid']]);
+                        }
+                     }
                     
                     if ($message['type']==4 && $message['year']!=''&&$message['year']<2017) {
 
