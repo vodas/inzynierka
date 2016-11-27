@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
+{% set i = 0 %}
 
 <form class="form-inline" action="" method="post">
   <div class="form-group">
@@ -15,50 +16,52 @@
     <script>
       function initMap() {
         
-
+        var contentString = new Array();
+        var infowindow = new Array();
+        var marker = new Array();
+        var point = new Array();
         var map = new google.maps.Map(document.getElementById('map'), {
           zoom: 10,
 	  center: {lat:54.502135, lng:18.817989}
         });
 
-        var contentString = '<div id="content">'+
-            '<div id="siteNotice">'+
-            '</div>'+
-            '<h1 id="firstHeading" class="firstHeading">Uluru</h1>'+
-            '<div id="bodyContent">'+
-            '<p><b>Uluru</b>, also referred to as <b>Ayers Rock</b>, is a large ' +
-            'sandstone rock formation in the southern part of the '+
-            'Northern Territory, central Australia. It lies 335&#160;km (208&#160;mi) '+
-            'south west of the nearest large town, Alice Springs; 450&#160;km '+
-            '(280&#160;mi) by road. Kata Tjuta and Uluru are the two major '+
-            'features of the Uluru - Kata Tjuta National Park. Uluru is '+
-            'sacred to the Pitjantjatjara and Yankunytjatjara, the '+
-            'Aboriginal people of the area. It has many springs, waterholes, '+
-            'rock caves and ancient paintings. Uluru is listed as a World '+
-            'Heritage Site.</p>'+
-            '<p>Attribution: Uluru, <a href="https://en.wikipedia.org/w/index.php?title=Uluru&oldid=297882194">'+
-            'https://en.wikipedia.org/w/index.php?title=Uluru</a> '+
-            '(last visited June 22, 2009).</p>'+
-            '</div>'+
-            '</div>';
-
-        var infowindow = new google.maps.InfoWindow({
-          content: contentString
-        });
+        
 
         {%for point in points%}
         {%if point.latitude != 'not available' and point.longitude != 'not available'%}
-       var point = {lat: {{point.latitude}}, lng: {{point.longitude}}};
 
-        var marker = new google.maps.Marker({
-          position: point,
-          map: map,
-          title: 'Uluru (Ayers Rock)'
+        contentString[{{i}}] = '<div id="content">'+
+            {% if ships[point.mmsi] is defined %}
+            '<div id="siteNotice">{{ships[point.mmsi]['shipname']}}'+
+            '</div>'+
+            {% endif%}
+            '<div id="bodyContent">'+
+            '<p>MMSI:{{point.mmsi}}</p>'+
+            {% if ships[point.mmsi] is defined %}
+                '<p>callsign:{{ships[point.mmsi]['callsign']}}</p>'+
+                '<p>ship type:{{ships[point.mmsi]['shiptype']}}</p>'+
+            {% endif%}
+            '<p></p>'+
+            '</div>'+
+            '</div>';
+
+        infowindow[{{i}}] = new google.maps.InfoWindow({
+          content: contentString[{{i}}]
         });
-        marker.addListener('click', function() {
-          infowindow.open(map, marker);
+
+
+       point[{{i}}] = {lat: {{point.latitude}}, lng: {{point.longitude}}};
+
+        marker[{{i}}] = new google.maps.Marker({
+          position: point[{{i}}],
+          map: map,
+          title: 'ship'
+        });
+        marker[{{i}}].addListener('click', function() {
+          infowindow[{{i}}].open(map, marker[{{i}}]);
         });
         {%endif%}
+        {% set i = i + 1 %}
         {%endfor%}
       }
     </script>

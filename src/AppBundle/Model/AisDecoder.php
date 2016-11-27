@@ -343,8 +343,8 @@ class AisDecoder {
 			$callsign = '';
 			$message['repeatIndicator'] = bindec(substr($binaryPayload, 6, 2));
 			$message['mmsi'] = bindec(substr($binaryPayload, 8, 30));
-			$message['part'] = bindec(substr($binaryPayload, 38, 2));
-			if ($message['part'] == 0) {
+			$message['partno'] = bindec(substr($binaryPayload, 38, 2));
+			if ($message['partno'] == 0) {
 				$message['shipname'] = substr($binaryPayload, 40, 120);
 				$i = 0;
 				while ($i < 119) {
@@ -352,7 +352,7 @@ class AisDecoder {
 					$i+=6;
 				}
 			$message['shipname'] = $shipname;
-			} elseif ($message['part'] == 1) {
+			} elseif ($message['partno'] == 1) {
 				$message['shiptype'] = bindec(substr($binaryPayload, 40, 8));
 				$message['shiptype'] = self::SHIPTYPE[$message['shiptype']];
 				$message['vendorid'] = substr($binaryPayload, 48, 18);

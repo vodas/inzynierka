@@ -30,7 +30,7 @@ class AisController extends Controller
      */
     public function zatokaAction(Request $request)
     {
-
+            $ships = array();
             $returnArr = array();
             if ($request->request->get('datetime') != ''){
             $requestedDate = new \DateTime($request->request->get('datetime'));
@@ -43,7 +43,6 @@ class AisController extends Controller
             $messages = array();
             $currentTime = null;
             $shipDataBuffer = array();
-            $ships = array();
         foreach ($rows as &$row) {
             if(substr($row, 0, 1)=='!') {
                 $row = str_replace("\r", '', $row);
@@ -52,7 +51,18 @@ class AisController extends Controller
                 if ($message != "error" && $message != "bad checksum") {
 
                     if($message['type']==24 && $message['part']!= 2) {
+                        if($message['partno'] == 0) {
+                            $ships[$message['mmsi']]['shipname'] = $message['shipname'];
+                        } elseif ($message['partno'] == 1) {
+                            $ships[$message['mmsi']]['shiptype'] = $message['shiptype'];
+                            $ships[$message['mmsi']]['callsign'] = $message['callsign'];
+                            $ships[$message['mmsi']]['to_bow'] = $message['to_bow'];
+                            $ships[$message['mmsi']]['to_stern'] = $message['to_stern']; 
+                            $ships[$message['mmsi']]['to_port'] = $message['to_port']; 
+                            $ships[$message['mmsi']]['to_starboard'] = $message['to_starboard'];
                         
+                    
+                    }
                     }
 
                      if ($message['type'] == 5) {
@@ -115,10 +125,9 @@ class AisController extends Controller
             }
         }
 
-
         
     }
-        return $this->render('default/zatoka.html.twig',array('points' =>$returnArr));
+        return $this->render('default/zatoka.html.twig',array('points' =>$returnArr, 'ships' => $ships));
     }
 
 }
