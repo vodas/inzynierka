@@ -98,7 +98,6 @@ class AisDecoder {
 		$message['part'] = $fragmentNumber;
 		$message['binaryPayload'] = $binaryPayload;
 		$message['type'] =  bindec(substr($binaryPayload,0,6));
-
 		if(in_array($message['type'], array(1,2,3))) {
 
 			$message['repeatIndicator'] = bindec(substr($binaryPayload,6,2));
@@ -194,7 +193,7 @@ class AisDecoder {
 			} else {
 			    $value = '';
 			    for ($i = 0 ; $i < 26; $i++) {
-				if (substr($binaryPayload,91+$i,1) == 1) {
+				if (substr($binaryPayload,90+$i,1) == 1) {
 				    $value = $value.'0';
 				} else {
 				    $value = $value.'1';
@@ -239,6 +238,129 @@ class AisDecoder {
 			$message['hour'] = bindec(substr($binaryPayload, 61, 5));
 			$message['minute'] = bindec(substr($binaryPayload, 66, 6)); 
 			$message['second'] = bindec(substr($binaryPayload, 72, 6));
+		} elseif ($message['type'] == 18) {
+			$message['repeatIndicator'] = bindec(substr($binaryPayload, 6, 2));
+			$message['mmsi'] = bindec(substr($binaryPayload, 8, 30));
+			$message['speedOverGround'] = bindec(substr($binaryPayload, 46, 10))/10;
+			$message['positionAccuracy'] = bindec(substr($binaryPayload, 56, 1));
+			if ($message['positionAccuracy'] == 1) {
+			    $message['positionAccuracy'] = 'DGPS-quality fix with an accuracy of < 10ms';
+			} else {
+			    $message['positionAccuracy'] = 'an unaugmented GNSS fix with accuracy > 10m';
+			}
+			if (substr($binaryPayload,57,1) == 0) {
+			    $message['longitude'] = bindec(substr($binaryPayload, 58, 27))/600000;
+			} else {
+			    $value = '';
+			    for ($i = 0 ; $i < 27; $i++) {
+				if (substr($binaryPayload,58+$i,1) == 1) {
+				    $value = $value.'0';
+				} else {
+				    $value = $value.'1';
+				}
+			    }
+			    $message['longitude'] = -(bindec($value)+1)/600000;
+			    if ($message['longitude'] == 181) {
+				$message['longitude'] = 'not available';
+			    }
+			}
+			if (substr($binaryPayload,85,1) == 0) {
+			    $message['latitude'] = bindec(substr($binaryPayload, 86, 26))/600000;
+			} else {
+			    $value = '';
+			    for ($i = 0 ; $i < 26; $i++) {
+				if (substr($binaryPayload,86+$i,1) == 1) {
+				    $value = $value.'0';
+				} else {
+				    $value = $value.'1';
+				}
+			    }
+			    $message['latitude'] = -(bindec($value)+1)/600000;
+			}
+			if($message['latitude'] == 91) {
+			    $message['latitude'] = 'not available';
+			}
+			$message['courseOverGround'] = bindec(substr($binaryPayload,112,12))/10;
+			if ($message['courseOverGround'] == 360) {
+			    $message['courseOverGround'] = 'not available';
+			}
+			$message['trueHeading'] = bindec(substr($binaryPayload,124,9));
+			if ($message['trueHeading'] == 511) {
+			    $message['trueHeading'] = 'not available';
+			}
+
+			$message['timeStamp'] = bindec(substr($binaryPayload,133
+				,6));
+			if ($message['timeStamp'] == 60) {
+			    $message['timeStamp'] = 'not available';
+			} else if ($message['timeStamp'] == 61) {
+			    $message['timeStamp'] = 'positioning system is in manual input mode';
+			} else if ($message['timeStamp'] == 62) {
+			    $message['timeStamp'] = 'electronic position fixing system operates in estimated (dead reckoning) mode';
+			} else if ($message['timeStamp'] == 63) {
+			    $message['timeStamp'] = 'positioning system is inoperative';
+			}
+
+
+
+		} elseif ($message['type'] == 24 && $message['part'] == 1) {
+			$asc_6bit = array(0 => '@', 1 => 'A', 2 => 'B', 3 => 'C',
+					4 => 'D', 5 => 'E', 6 => 'F', 7 => 'G',
+					8 => 'H', 9 => 'I', 10 => 'J', 11 => 'K',
+					12 => 'L', 13 => 'M', 14 => 'N', 15 => 'O',
+					16 => 'P', 17 => 'Q', 18 => 'R', 19 => 'S',
+					20 => 'T', 21 => 'U', 22 => 'V', 23 => 'W',
+					24 => 'X', 25 => 'Y', 26 => 'Z', 27 => '[',
+					28 => "'\'", 29 => ']', 30 => "\^", 31 => "\_",
+					32 => ' ', 33 => '!', 34 => '"', 35 => '\#',
+					36 => '$', 37 => '%', 38 => '&', 39 => "\'",
+					40 => '(', 41 => ')', 42 => "\*", 43 => "\+",
+					44 => ",", 45 => "-", 46 => ".", 47 => "/",
+					48 => '0', 49 => '1', 50 => '2', 51 => '3',
+					52 => '4', 53 => '5', 54 => '6', 55 => '7',
+					56 => '8', 57 => '9', 58 => ':', 59 => ';',
+					60 => '<', 61 => '=', 62 => '>', 63 => '?'   
+			);
+			$shipname = '';
+			$vendorid = '';
+			$callsign = '';
+			$message['repeatIndicator'] = bindec(substr($binaryPayload, 6, 2));
+			$message['mmsi'] = bindec(substr($binaryPayload, 8, 30));
+			$message['part'] = bindec(substr($binaryPayload, 38, 2));
+			if ($message['part'] == 0) {
+				$message['shipname'] = substr($binaryPayload, 40, 120);
+				$i = 0;
+				while ($i < 119) {
+					$shipname = $shipname.$asc_6bit[bindec(substr($message['shipname'],$i,6))];
+					$i+=6;
+				}
+			$message['shipname'] = $shipname;
+			} elseif ($message['part'] == 1) {
+				$message['shiptype'] = bindec(substr($binaryPayload, 40, 8));
+				$message['vendorid'] = substr($binaryPayload, 48, 18);
+				$i = 0;
+				while ($i < 17) {
+					$vendorid = $vendorid.$asc_6bit[bindec(substr($message['vendorid'],$i,6))];
+					$i+=6;
+				}
+				$message['vendorid'] = $vendorid;
+				$message['unitModelCode'] = bindec(substr($binaryPayload, 66, 4));
+				$message['serialNumber'] = bindec(substr($binaryPayload, 70, 20));
+				$message['callsign'] = substr($binaryPayload, 90, 42);
+				$i = 0;
+				while ($i < 41) {
+					$callsign = $callsign.$asc_6bit[bindec(substr($message['callsign'],$i,6))];
+					$i+=6;
+				}
+				$message['callsign'] = $callsign;
+				$message['to_bow'] = bindec(substr($binaryPayload, 132, 9));
+				$message['to_stern'] = bindec(substr($binaryPayload, 141, 9));
+				$message['to_port'] = bindec(substr($binaryPayload, 150, 6));
+				$message['to_starboard'] = bindec(substr($binaryPayload, 156, 6));
+				$message['mothershipmmsi'] = bindec(substr($binaryPayload, 132, 30));
+
+			}
+			var_dump($message);
 		}
 		return $message;
 		} else {
@@ -303,7 +425,7 @@ class AisDecoder {
 		$message['day'] = bindec(substr($payload, 278, 5));
 		$message['hour'] = bindec(substr($payload, 283, 5));
 		$message['minute'] = bindec(substr($payload, 288, 6));
-		$message['draught'] = bindec(substr($payload, 294, 8));
+		$message['draught'] = bindec(substr($payload, 294, 8))/10;
 		$message['destination'] = substr($payload, 302, 120);
 		$i = 0;
 		while ($i < 119) {
@@ -311,6 +433,6 @@ class AisDecoder {
 			$i+=6;
 		}
 		$message['destination'] = $destination;
-
+		return $message;
 	}
 }

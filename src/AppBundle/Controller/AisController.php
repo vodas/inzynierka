@@ -9,6 +9,22 @@ use AppBundle\Model\AisDecoder;
 
 class AisController extends Controller
 {
+
+    define('SHIPTYPE', array(
+        0 => 'not available', 1 => 'Reserved for future use', 2 => 'Reserved for future use',
+        3 => 'Reserved for future use', 4 => 'Reserved for future use', 5 => 'Reserved for future use',
+        6 => 'Reserved for future use', 7 => 'Reserved for future use', 8 => 'Reserved for future use',
+        9 => 'Reserved for future use', 10 => 'Reserved for future use', 11 => 'Reserved for future use',
+        12 => 'Reserved for future use', 13 => 'Reserved for future use', 14 => 'Reserved for future use',
+        15 => 'Reserved for future use', 16 => 'Reserved for future use', 17 => 'Reserved for future use',
+        18 => 'Reserved for future use', 19 => 'Reserved for future use', 20 => 'Wing in ground (WIG), all ships of this type',
+        21 => 'Wing in ground (WIG), Hazardous category A', 22 => 'Wing in ground (WIG), Hazardous category B',
+        23 => 'Wing in ground (WIG), Hazardous category C', 24 => 'Wing in ground (WIG), Hazardous category D',
+        25 => 'Wing in ground (WIG), Reserved for future use', 26 => 'Wing in ground (WIG), Reserved for future use',
+        27 => 'Wing in ground (WIG), Reserved for future use', 28 => 'Wing in ground (WIG), Reserved for future use',
+        29 => 'Wing in ground (WIG), Reserved for future use', 30 => 'Fishing', 31 => 'Towing', 32 => 'Towing: length exceeds 200m or breadth exceeds 25m', 33 => 'Dredging or underwater ops', 34 => 'Diving ops', 35 => 'Military ops', 36 => 'Sailing',
+        37 => 'Pleasure Craft', 38 => 'Reserved', 39 => 'Reserved', 40 => 'High speed craft (HSC), all ships of this type',
+    ));
     /**
      * @Route("/ais/dekoder", name="dekoder")
      */
@@ -50,6 +66,9 @@ class AisController extends Controller
                 
                 if ($message != "error" && $message != "bad checksum") {
 
+                    if($message['type']==24 && $message['part']!= 2) {
+                        
+                    }
 
                      if ($message['type'] == 5) {
                          $shipDataBuffer[$message['seqid']]['payload'] = $message['binaryPayload'];
@@ -58,7 +77,8 @@ class AisController extends Controller
                         if (array_key_exists($message['seqid'], $shipDataBuffer)) {
 
                             
-                            $decoder->decodeType_5($shipDataBuffer[$message['seqid']]['payload'],$message['binaryPayload']);
+                            $shipData = $decoder->decodeType_5($shipDataBuffer[$message['seqid']]['payload'],$message['binaryPayload']);
+                            $ships[$shipData['mmsi']] = $shipData;
                             unset($shipDataBuffer[$message['seqid']]);
                         }
                      }
@@ -91,7 +111,7 @@ class AisController extends Controller
                         $currentTime = $date->getTimestamp();
                     }
 
-                    elseif (in_array($message['type'], array(1,2,3))) {
+                    elseif (in_array($message['type'], array(1,2,3, 18))) {
                        $message['time'] = $currentTime;
                     if($message['time']>=$requestedBefore&& $message['time']<=$requestedTimestamp) {
                         if(in_array($message['mmsi'], array_column($returnArr, 'mmsi'))) {
@@ -113,7 +133,6 @@ class AisController extends Controller
 
         
     }
-      
         return $this->render('default/zatoka.html.twig',array('points' =>$returnArr));
     }
 
