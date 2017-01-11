@@ -11,10 +11,6 @@ class AisController extends Controller
 {
 
 
-
-	/**
-     * @Route("/", name="homepage")
-     */
     public function indexAction(Request $request)
     {
         // replace this example code with whatever you need
@@ -24,9 +20,7 @@ class AisController extends Controller
     }
     
 
-    /**
-     * @Route("/ais/zatoka", name="zatoka")
-     */
+    
     public function zatokaAction(Request $request){
         $ships = array();
         $returnArr = array();

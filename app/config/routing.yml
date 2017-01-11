@@ -1,3 +1,13 @@
 app:
     resource: "@AppBundle/Controller/"
     type:     annotation
+
+homepage:
+    resource: "@AppBundle/AisController/index"
+    prefix:   /
+    
+zatoka:
+    resource: "@AppBundle/AisController/zatoka"
+    prefix: /ais/zatoka 
+     
+     

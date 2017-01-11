@@ -46,7 +46,6 @@
             {% endif %}
             '<div id="bodyContent">'+
             '<p>MMSI:{{point.mmsi}}</p>'+
-            {% if ships[point.mmsi] is defined %}
                 {% if point.navigationalStatus is defined %}
                     '<p>Navigational status:{{point.navigationalStatus}}</p>'+
                 {% endif %}    
@@ -84,7 +83,7 @@
                     '<p>draught:{{ships[point.mmsi]['draught']}}</p>'+
                 {% endif %}    
                 {% if ships[point.mmsi]['destination'] is defined %}
-                    '<p>draught:{{ships[point.mmsi]['destination']}}</p>'+
+                    '<p>destination:{{ships[point.mmsi]['destination']}}</p>'+
                 {% endif %}    
                 {% if ships[point.mmsi]['imo'] is defined %}
                     '<p>IMO:{{ships[point.mmsi]['imo']}}</p>'+
@@ -103,7 +102,6 @@
                 {% endif %}     
                 {% if ships[point.mmsi]['to_starboard'] is defined %}
                     '<p>Diemenson to starboard:{{ships[point.mmsi]['to_starboard']}}</p>'+
-                {% endif %}     
             {% endif%}
             '<p></p>'+
             '</div>'+
