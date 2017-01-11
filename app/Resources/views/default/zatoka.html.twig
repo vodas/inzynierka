@@ -5,18 +5,16 @@
 
 <form class="form-inline" action="" method="post">
   <div class="form-group">
-    <label for="email">Czas:</label>
-	 <div class='input-group date' id='datetimepicker1'>
-                    <input type='text' class="form-control" name="datetime"/>
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
-                </div>
+  <label for="email">Czas:</label>
+    <div class='input-group date' id='datetimepicker1'>
+        <input type='text' class="form-control" name="datetime"/>
+        <span class="input-group-addon">
+            <span class="glyphicon glyphicon-calendar"></span>
+        </span>
+    </div>
   </div>
-
   <button type="submit" class="btn btn-default">szukaj</button>
 </form>
-
  <div id="map" style="width:1000px;height:700px;"></div>
     <script>
       $(function () {
@@ -41,14 +39,71 @@
 
         contentString[{{i}}] = '<div id="content">'+
             {% if ships[point.mmsi] is defined %}
-            '<div id="siteNotice">{{ships[point.mmsi]['shipname']}}'+
-            '</div>'+
-            {% endif%}
+                {% if ships[point.mmsi]['shipname'] is defined%}
+                    '<div id="siteNotice">{{ships[point.mmsi]['shipname']}}'+
+                    '</div>'+
+                {% endif %}    
+            {% endif %}
             '<div id="bodyContent">'+
             '<p>MMSI:{{point.mmsi}}</p>'+
             {% if ships[point.mmsi] is defined %}
-                '<p>callsign:{{ships[point.mmsi]['callsign']}}</p>'+
-                '<p>ship type:{{ships[point.mmsi]['shiptype']}}</p>'+
+                {% if point.navigationalStatus is defined %}
+                    '<p>Navigational status:{{point.navigationalStatus}}</p>'+
+                {% endif %}    
+                {% if point.rateOfTurn is defined %}
+                    '<p>Rate of turn:{{point.rateOfTurn}}</p>'+
+                {% endif %}       
+                {% if point.speedOverGround is defined %}
+                    '<p>Speed over ground:{{point.speedOverGround}}</p>'+
+                {% endif %}     
+                {% if point.positionAccuracy is defined %}
+                    '<p>Position accuracy:{{point.positionAccuracy}}</p>'+
+                {% endif %}    
+                {% if point.longitude is defined %}
+                    '<p>Longitude:{{point.longitude}}</p>'+
+                {% endif %}    
+                {% if point.latitude is defined %}
+                    '<p>Latitude:{{point.latitude}}</p>'+
+                {% endif %}     
+                {% if point.courseOverGround is defined %}
+                    '<p>Course over ground:{{point.courseOverGround}}</p>'+
+                {% endif %}    
+                {% if point.trueHeading is defined %}
+                    '<p>True heading:{{point.trueHeading}}</p>'+
+                {% endif %} 
+                {% if point.maneuverIndicator is defined %}
+                    '<p>Maneuver indicator:{{point.maneuverIndicator}}</p>'+
+                {% endif %}
+                {% if ships[point.mmsi]['callsign'] is defined %}
+                    '<p>callsign:{{ships[point.mmsi]['callsign']}}</p>'+
+                {% endif %}        
+                {%if ships[point.mmsi]['shiptype'] is defined %}    
+                    '<p>ship type:{{ships[point.mmsi]['shiptype']}}</p>'+
+                {% endif %}    
+                {% if ships[point.mmsi]['draught'] is defined %}
+                    '<p>draught:{{ships[point.mmsi]['draught']}}</p>'+
+                {% endif %}    
+                {% if ships[point.mmsi]['destination'] is defined %}
+                    '<p>draught:{{ships[point.mmsi]['destination']}}</p>'+
+                {% endif %}    
+                {% if ships[point.mmsi]['imo'] is defined %}
+                    '<p>IMO:{{ships[point.mmsi]['imo']}}</p>'+
+                {% endif %} 
+                {% if ships[point.mmsi]['to_bow'] is defined %}
+                    '<p>Diemenson to bow:{{ships[point.mmsi]['to_bow']}}</p>'+
+                {% endif %}
+                {% if ships[point.mmsi]['to_bow'] is defined %}
+                    '<p>Diemenson to bow:{{ships[point.mmsi]['to_bow']}}</p>'+
+                {% endif %}    
+                {% if ships[point.mmsi]['to_stern'] is defined %}
+                    '<p>Diemenson to stern:{{ships[point.mmsi]['to_stern']}}</p>'+
+                {% endif %}     
+                {% if ships[point.mmsi]['to_port'] is defined %}
+                    '<p>Diemenson to port:{{ships[point.mmsi]['to_port']}}</p>'+
+                {% endif %}     
+                {% if ships[point.mmsi]['to_starboard'] is defined %}
+                    '<p>Diemenson to starboard:{{ships[point.mmsi]['to_starboard']}}</p>'+
+                {% endif %}     
             {% endif%}
             '<p></p>'+
             '</div>'+
